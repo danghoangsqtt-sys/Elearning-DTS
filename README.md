@@ -167,13 +167,13 @@ The full project documentation is available in the [`doc`](./doc/index.md) direc
 
 ## Solo Logic Alpha — Build & Demo
 
-This section documents the Solo Logic Alpha deliverable (commit `3c7c7e82163e812f04cbb033240942f8ac1214a0`, fork `danghoangsqtt-sys/exelearning` branch `feature/solo-logic-alpha`).
+This section documents the Solo Logic Alpha deliverable (commit `3ec934245151abb05f783fe136cfef03c5d35ee8`, repo `danghoangsqtt-sys/Elearning-DTS` branch `feature/solo-logic-alpha`).
 
 ### Quick Start (Docker, matches P02 verified environment)
 
 ```bash
-git clone https://github.com/danghoangsqtt-sys/exelearning.git
-cd exelearning
+git clone https://github.com/danghoangsqtt-sys/Elearning-DTS.git
+cd Elearning-DTS
 git checkout feature/solo-logic-alpha
 docker run --rm -v ${PWD}:/app -w /app oven/bun:1.3-alpine sh -c "bun run build:all"
 docker run --rm -p 8080:8080 -v ${PWD}:/app -w /app oven/bun:1.3-alpine bun run start

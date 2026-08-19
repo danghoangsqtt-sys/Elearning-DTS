@@ -3,24 +3,24 @@
 Baseline evidence for task **P01** and requirement **PLAT-01**. This file records the source revision, toolchain
 contract, reproducible commands, and the smallest relevant module map before product code is changed.
 
-Last verified: **2026-08-12** on Windows 11 from VS Code with native PowerShell.
+Last verified: **2026-08-19** on Windows 11 from VS Code with native PowerShell.
 
 ## Source baseline
 
 | Item | Pinned value |
 |---|---|
-| Repository | `exelearning/exelearning` |
-| Upstream URL | `https://github.com/exelearning/exelearning.git` |
-| Working fork | `https://github.com/danghoangsqtt-sys/exelearning.git` |
-| Branch | `feature/solo-logic-alpha` tracking `upstream/main` |
-| Commit | `3c7c7e82163e812f04cbb033240942f8ac1214a0` |
-| Commit date | `2026-08-06` |
-| Commit subject | `Fix typo in CHANGELOG for file attachments (#2243)` |
-| Baseline relation | `HEAD == upstream/main` at verification time |
+| Repository | `danghoangsqtt-sys/Elearning-DTS` (official project repo) |
+| Upstream base | `https://github.com/exelearning/exelearning.git` |
+| Project repo | `https://github.com/danghoangsqtt-sys/Elearning-DTS.git` |
+| Branch | `feature/solo-logic-alpha` (default branch `main` on same commit) |
+| Commit | `3ec934245151abb05f783fe136cfef03c5d35ee8` |
+| Commit date | `2026-08-19` |
+| Commit subject | `fix(test): make unit and integration test infrastructure Windows-compatible` |
+| Baseline relation | HEAD of `feature/solo-logic-alpha` and `main` in Elearning-DTS |
 | Dependency lock | `bun.lock`, lockfile version `1`, config version `1` |
 
 The commit hash, rather than the moving branch name, is the reproducible source pin for Solo Logic Alpha. A later
-upstream update requires a deliberate baseline change and a new verification record.
+base update requires a deliberate baseline change and a new verification record.
 
 ## Toolchain contract
 

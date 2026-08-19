@@ -12,10 +12,10 @@ This document provides step-by-step commands to reproduce the Solo Logic Alpha d
 ## 1. Clone and Setup
 
 ```bash
-git clone https://github.com/danghoangsqtt-sys/exelearning.git
-cd exelearning
+git clone https://github.com/danghoangsqtt-sys/Elearning-DTS.git
+cd Elearning-DTS
 git checkout feature/solo-logic-alpha
-# Pinned commit: 3c7c7e82163e812f04cbb033240942f8ac1214a0
+# Pinned commit: 3ec934245151abb05f783fe136cfef03c5d35ee8
 ```
 
 ## 2. Install Dependencies and Build

@@ -1,7 +1,7 @@
 # Solo Logic Alpha — Release Notes (2026-08-19)
 
 ## Version
-**Solo Logic Alpha** — commit `3c7c7e82163e812f04cbb033240942f8ac1214a0` (upstream `exelearning/exelearning` main @ 2026-08-06, "Fix typo in CHANGELOG for file attachments (#2243)")
+**Solo Logic Alpha** — commit `3ec934245151abb05f783fe136cfef03c5d35ee8` (base `exelearning/exelearning` main @ 2026-08-19, "EducaBlue style, by EducaMadrid (#2258)")
 
 ## Date
 2026-08-19
@@ -9,8 +9,8 @@
 ## Deliverables (per PLAN.md §12)
 
 1. **Source fork AGPL at fixed commit/tag**
-   - Fork: `danghoangsqtt-sys/exelearning` branch `feature/solo-logic-alpha` tracking upstream/main
-   - Pinned commit: `3c7c7e82163e812f04cbb033240942f8ac1214a0` (2026-08-06)
+   - Repo: `danghoangsqtt-sys/Elearning-DTS` branch `feature/solo-logic-alpha` (default branch `main`, same commit)
+   - Pinned commit: `3ec934245151abb05f783fe136cfef03c5d35ee8` (2026-08-19)
    - Verified in repo-map.md "Source baseline" (2026-08-12)
 
 2. **Five project skills, lock file, sync/check script, discovery evidence**
