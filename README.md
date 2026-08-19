@@ -1,35 +1,35 @@
 <div align="center">
-  <a href="https://github.com/exelearning/exelearning">
-    <img src="public/images/logo_readme.png" alt="eXeLearning Logo" height="225">
+  <a href="https://github.com/danghoangsqtt-sys/Elearning-DTS">
+    <img src="public/images/logo_readme.png" alt="Elearning-DTS Logo" height="225">
   </a>
 
-  <h1 align="center">eXeLearning</h1>
+  <h1 align="center">Elearning-DTS</h1>
 
   <p align="center">
-    <strong>eXeLearning</strong> is an AGPL-licensed free/libre tool to create and publish open educational resources.
+    <strong>Elearning-DTS</strong> is an independent educational-authoring project built on top of the
+    <a href="https://github.com/exelearning/exelearning">eXeLearning</a> platform (AGPL-3.0).
     <br />
-    <a href="https://github.com/exelearning/exelearning"><strong>Explore the project »</strong></a>
-    <br />
-    <br />
-    <a href="https://github.com/exelearning/exelearning/issues/new?labels=bug">Report a Bug</a>
-    ·
-    <a href="https://github.com/exelearning/exelearning/issues/new?labels=enhancement">Request Feature</a>
+    <a href="https://github.com/danghoangsqtt-sys/Elearning-DTS"><strong>Explore the project »</strong></a>
   </p>
 </div>
 
-<p align="center">
-  <a href="https://codecov.io/gh/exelearning/exelearning">
-    <img src="https://codecov.io/gh/exelearning/exelearning/graph/badge.svg" alt="codecov" />
-  </a>
-</p>
+## About This Project
 
-## About the Project
+**Elearning-DTS** is an independent project. It reuses the eXeLearning codebase as its foundation and adds
+its own interactive content — notably the **Electronics Logic** iDevice (Boolean algebra, truth-table,
+Karnaugh map, and combinational circuit activities with deterministic offline grading, see
+[Solo Logic Alpha](#solo-logic-alpha--build--demo)).
 
-eXeLearning is a free and open source authoring tool for creating interactive educational resources. It was originally developed within the eXeLearning.org project in New Zealand and, since 2010,it has been maintained and further developed by the eXeLearning.net project, led by the Spanish Ministry of Education, Vocational Training and Sports (MEFPD) through Cedec-INTEF.
+The eXeLearning-derived portions of this repository remain licensed under the **GNU AGPL v3.0** and retain
+their original copyright notices and attribution (see [License](#license)). Attribution to the eXeLearning
+project is kept in full, as required by its license.
 
-Currently, the development of the code is carried out in a coordinated manner between the MEFPD and the regional administrations, ensuring its continuous evolution, the improvement of its architecture, and the incorporation of new features.
-
-This version is built with modern technologies (Bun, Elysia, Kysely) and provides an accessible and up-to-date user interface for creating interactive educational content.
+The underlying eXeLearning platform is a free and open source authoring tool for creating interactive
+educational resources, originally developed within the eXeLearning.org project in New Zealand and, since
+2010, maintained by the eXeLearning.net project, led by the Spanish Ministry of Education, Vocational
+Training and Sports (MEFPD) through Cedec-INTEF. The base is built with modern technologies (Bun, Elysia,
+Kysely) and provides an accessible and up-to-date user interface for creating interactive educational
+content.
 
 ### Key Features
 
@@ -51,28 +51,28 @@ This version is built with modern technologies (Bun, Elysia, Kysely) and provide
 ### Using Docker
 
 ```bash
-docker run --pull always -p 8080:8080 --name exelearning exelearning/exelearning:latest
+docker run --pull always -p 8080:8080 --name elearning-dts exelearning/exelearning:latest
 ```
 
-This will start eXeLearning at `http://localhost:8080` with the default credentials: `user@exelearning.net` / `1234`.
+This will start the project at `http://localhost:8080` with the default credentials: `user@exelearning.net` / `1234`.
 
 ### Local Development
 
 First install [Bun](https://bun.sh/) if you don't have it yet. Then:
 
 ```bash
-git clone https://github.com/exelearning/exelearning.git
-cd exelearning
+git clone https://github.com/danghoangsqtt-sys/Elearning-DTS.git
+cd Elearning-DTS
 make up-local
 ```
 
-This will install dependencies, build assets, and start eXeLearning at `http://localhost:8080` with hot reload.
+This will install dependencies, build assets, and start the project at `http://localhost:8080` with hot reload.
 
-Offline installers for Linux, Windows and macOS are also available on the [Releases page](https://github.com/exelearning/exelearning/releases).
+Offline installers for Linux, Windows and macOS are also available on the [Releases page](https://github.com/danghoangsqtt-sys/Elearning-DTS/releases).
 
 ## Deployment
 
-To deploy eXeLearning in a production environment, see:
+To deploy this project (based on the eXeLearning platform) in a production environment, see:
 
 - Overview: [doc/deployment.md](./doc/deployment.md)
 - Sample Compose files: [doc/deploy/README.md](./doc/deploy/README.md)
@@ -83,8 +83,8 @@ To deploy eXeLearning in a production environment, see:
 See [doc/development/environment.md](./doc/development/environment.md) for full setup instructions.
 
 ```bash
-git clone https://github.com/exelearning/exelearning.git
-cd exelearning
+git clone https://github.com/danghoangsqtt-sys/Elearning-DTS.git
+cd Elearning-DTS
 make up-local
 ```
 
@@ -96,7 +96,7 @@ For profiling and performance investigations in Electron and export/save flows, 
 
 ## Usage
 
-eXeLearning enables educators to:
+The project enables educators to:
 
 1. Create interactive educational projects
 2. Add different types of content using iDevices
@@ -161,9 +161,8 @@ The full project documentation is available in the [`doc`](./doc/index.md) direc
 
 ## Contributors
 
-<a href="https://github.com/exelearning/exelearning/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=exelearning/exelearning" alt="Contributors" />
-</a>
+This project is built on the eXeLearning codebase. Original eXeLearning contributors are credited in the
+[upstream repository](https://github.com/exelearning/exelearning/graphs/contributors).
 
 ## Solo Logic Alpha — Build & Demo
 
