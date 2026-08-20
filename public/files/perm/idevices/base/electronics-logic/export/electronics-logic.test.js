@@ -679,12 +679,22 @@ describe('Electronics Logic learner runtime', () => {
         expect(feedback.textContent).toContain('Không thể chấm bài lúc này.');
     });
 
-    it('renders the six circuit palette tools from GATE_PINS in their canonical order', () => {
+    it('renders the nine circuit palette tools from GATE_PINS in their canonical order', () => {
         document.body.innerHTML = renderer.renderView(createCircuitData(), false, '{content}');
         renderer.renderBehaviour(document);
 
         const paletteItems = [...document.querySelectorAll('[data-role="circuit-palette-item"]')];
-        expect(paletteItems.map(item => item.dataset.nodeKind)).toEqual(['INPUT', 'OUTPUT', 'NOT', 'AND', 'OR', 'XOR']);
+        expect(paletteItems.map(item => item.dataset.nodeKind)).toEqual([
+            'INPUT',
+            'OUTPUT',
+            'NOT',
+            'AND',
+            'OR',
+            'XOR',
+            'NAND',
+            'NOR',
+            'XNOR',
+        ]);
         expect(paletteItems.every(item => item.getAttribute('aria-pressed') === 'false')).toBe(true);
         expect(document.querySelector('[data-role="circuit-canvas"]')).not.toBeNull();
         expect(document.querySelectorAll('[data-role="circuit-cell"]')).toHaveLength(96);

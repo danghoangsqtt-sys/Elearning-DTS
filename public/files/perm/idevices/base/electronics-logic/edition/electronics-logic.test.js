@@ -118,6 +118,47 @@ describe('Electronics Logic edition authoring', () => {
         expect(idevice.save().answer.testbench).toEqual(saved.answer.testbench);
     });
 
+    it('creates and round-trips a three-output testbench without hard-coded output counts', () => {
+        idevice.init(container, {});
+        const mode = container.querySelector('[data-field="mode"]');
+        mode.value = 'circuit';
+        mode.dispatchEvent(new Event('change'));
+        container.querySelector('[data-field="prompt"]').value = 'Dựng mạch ba đầu ra cho A và B.';
+        container.querySelector('[data-field="circuit-outputs"]').value =
+            'Sum = A XOR B\nCarry = A AND B\nDiff = A OR B';
+        container.querySelector('[data-field="max-score"]').value = '12';
+
+        const saved = idevice.save();
+        expect(saved).toMatchObject({
+            mode: 'circuit',
+            variables: ['A', 'B'],
+            answer: {
+                testbench: {
+                    variables: ['A', 'B'],
+                    inputs: { A: 'input-1', B: 'input-2' },
+                    outputs: { Sum: 'output-1', Carry: 'output-2', Diff: 'output-3' },
+                    expected: { Sum: 'A XOR B', Carry: 'A AND B', Diff: 'A OR B' },
+                },
+            },
+            grading: { maxScore: 12 },
+        });
+
+        idevice.init(container, saved);
+        expect(container.querySelector('[data-field="circuit-outputs"]').value).toBe(
+            'Sum = A XOR B\nCarry = A AND B\nDiff = A OR B',
+        );
+        const circuitMode = container.querySelector('[data-field="mode"]');
+        circuitMode.value = 'boolean';
+        circuitMode.dispatchEvent(new Event('change'));
+        expect(idevice.data.answer.testbench).toEqual(saved.answer.testbench);
+        const booleanMode = container.querySelector('[data-field="mode"]');
+        booleanMode.value = 'circuit';
+        booleanMode.dispatchEvent(new Event('change'));
+        expect(idevice.data.answer.testbench).toEqual(saved.answer.testbench);
+
+        expect(idevice.save().answer.testbench).toEqual(saved.answer.testbench);
+    });
+
     it('shows the locked Vietnamese validation message for an empty circuit testbench', () => {
         idevice.init(container, {});
         const mode = container.querySelector('[data-field="mode"]');

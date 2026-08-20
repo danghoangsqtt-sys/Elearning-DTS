@@ -31,6 +31,23 @@ function createAndTestbench(expected = 'A AND B', outputName = 'P') {
     };
 }
 
+function createGateNetlist(gateKind) {
+    return {
+        schemaVersion: 1,
+        nodes: [
+            { id: 'in-a', kind: 'INPUT', x: 0, y: 0 },
+            { id: 'in-b', kind: 'INPUT', x: 0, y: 100 },
+            { id: 'gate-p', kind: gateKind, x: 100, y: 50 },
+            { id: 'p-out', kind: 'OUTPUT', x: 200, y: 50 },
+        ],
+        wires: [
+            { id: 'w1', from: { node: 'in-a', pin: 'out' }, to: { node: 'gate-p', pin: 'a' } },
+            { id: 'w2', from: { node: 'in-b', pin: 'out' }, to: { node: 'gate-p', pin: 'b' } },
+            { id: 'w3', from: { node: 'gate-p', pin: 'out' }, to: { node: 'p-out', pin: 'a' } },
+        ],
+    };
+}
+
 function createNotNetlist() {
     return {
         schemaVersion: 1,
@@ -64,6 +81,33 @@ function createTwoOutputNetlist() {
             { id: 'w4', from: { node: 'in-a', pin: 'out' }, to: { node: 'gate-q', pin: 'a' } },
             { id: 'w5', from: { node: 'in-b', pin: 'out' }, to: { node: 'gate-q', pin: 'b' } },
             { id: 'w6', from: { node: 'gate-q', pin: 'out' }, to: { node: 'q-out', pin: 'a' } },
+        ],
+    };
+}
+
+function createThreeOutputNetlist() {
+    return {
+        schemaVersion: 1,
+        nodes: [
+            { id: 'in-a', kind: 'INPUT', x: 0, y: 0 },
+            { id: 'in-b', kind: 'INPUT', x: 0, y: 100 },
+            { id: 'gate-x', kind: 'XOR', x: 100, y: 0 },
+            { id: 'gate-and', kind: 'AND', x: 100, y: 60 },
+            { id: 'gate-or', kind: 'OR', x: 100, y: 120 },
+            { id: 'x-out', kind: 'OUTPUT', x: 200, y: 0 },
+            { id: 'and-out', kind: 'OUTPUT', x: 200, y: 60 },
+            { id: 'or-out', kind: 'OUTPUT', x: 200, y: 120 },
+        ],
+        wires: [
+            { id: 'w1', from: { node: 'in-a', pin: 'out' }, to: { node: 'gate-x', pin: 'a' } },
+            { id: 'w2', from: { node: 'in-b', pin: 'out' }, to: { node: 'gate-x', pin: 'b' } },
+            { id: 'w3', from: { node: 'gate-x', pin: 'out' }, to: { node: 'x-out', pin: 'a' } },
+            { id: 'w4', from: { node: 'in-a', pin: 'out' }, to: { node: 'gate-and', pin: 'a' } },
+            { id: 'w5', from: { node: 'in-b', pin: 'out' }, to: { node: 'gate-and', pin: 'b' } },
+            { id: 'w6', from: { node: 'gate-and', pin: 'out' }, to: { node: 'and-out', pin: 'a' } },
+            { id: 'w7', from: { node: 'in-a', pin: 'out' }, to: { node: 'gate-or', pin: 'a' } },
+            { id: 'w8', from: { node: 'in-b', pin: 'out' }, to: { node: 'gate-or', pin: 'b' } },
+            { id: 'w9', from: { node: 'gate-or', pin: 'out' }, to: { node: 'or-out', pin: 'a' } },
         ],
     };
 }
@@ -113,6 +157,28 @@ describe('Circuit testbench grader', () => {
                 { id: 'case-01-p', passed: true, expected: '0', actual: '0' },
                 { id: 'case-10-p', passed: true, expected: '0', actual: '0' },
                 { id: 'case-11-p', passed: true, expected: '1', actual: '1' },
+            ],
+        });
+    });
+
+    it.each([
+        ['NAND', 'NOT (A AND B)', ['1', '1', '1', '0']],
+        ['NOR', 'NOT (A OR B)', ['1', '0', '0', '0']],
+        ['XNOR', 'NOT (A XOR B)', ['1', '0', '0', '1']],
+    ])('grades every binary combination of a two-input %s circuit', (gateKind, expected, results) => {
+        expect(
+            gradeCircuitResponse({
+                netlist: createGateNetlist(gateKind),
+                testbench: createAndTestbench(expected),
+                maxScore: 10,
+            }),
+        ).toEqual({
+            score: 10,
+            checks: [
+                { id: 'case-00-p', passed: true, expected: results[0], actual: results[0] },
+                { id: 'case-01-p', passed: true, expected: results[1], actual: results[1] },
+                { id: 'case-10-p', passed: true, expected: results[2], actual: results[2] },
+                { id: 'case-11-p', passed: true, expected: results[3], actual: results[3] },
             ],
         });
     });
@@ -173,6 +239,34 @@ describe('Circuit testbench grader', () => {
             'case-10-q',
             'case-11-p',
             'case-11-q',
+        ]);
+    });
+
+    it('grades three outputs for every input combination without hard-coded output counts', () => {
+        const testbench = {
+            variables: ['A', 'B'],
+            inputs: { A: 'in-a', B: 'in-b' },
+            outputs: { X: 'x-out', Y: 'and-out', Z: 'or-out' },
+            expected: { X: 'A XOR B', Y: 'A AND B', Z: 'A OR B' },
+        };
+        const result = gradeCircuitResponse({ netlist: createThreeOutputNetlist(), testbench, maxScore: 12 });
+
+        expect(result.score).toBe(12);
+        expect(result.checks).toHaveLength(12);
+        expect(result.checks.every(check => check.passed)).toBe(true);
+        expect(result.checks.map(check => check.id)).toEqual([
+            'case-00-x',
+            'case-00-y',
+            'case-00-z',
+            'case-01-x',
+            'case-01-y',
+            'case-01-z',
+            'case-10-x',
+            'case-10-y',
+            'case-10-z',
+            'case-11-x',
+            'case-11-y',
+            'case-11-z',
         ]);
     });
 
