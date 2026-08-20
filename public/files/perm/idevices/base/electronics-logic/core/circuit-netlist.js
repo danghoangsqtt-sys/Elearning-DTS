@@ -7,6 +7,9 @@ const GATE_PINS = Object.freeze({
     AND: Object.freeze({ inputs: Object.freeze(['a', 'b']), outputs: Object.freeze(['out']) }),
     OR: Object.freeze({ inputs: Object.freeze(['a', 'b']), outputs: Object.freeze(['out']) }),
     XOR: Object.freeze({ inputs: Object.freeze(['a', 'b']), outputs: Object.freeze(['out']) }),
+    NAND: Object.freeze({ inputs: Object.freeze(['a', 'b']), outputs: Object.freeze(['out']) }),
+    NOR: Object.freeze({ inputs: Object.freeze(['a', 'b']), outputs: Object.freeze(['out']) }),
+    XNOR: Object.freeze({ inputs: Object.freeze(['a', 'b']), outputs: Object.freeze(['out']) }),
 });
 
 const ERROR_MESSAGES = Object.freeze({

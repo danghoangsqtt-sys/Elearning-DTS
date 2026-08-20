@@ -23,6 +23,9 @@ const EXPECTED_BINARY_RESULTS = {
     AND: ['0', '0', '0', '0', '1', 'X', '0', 'X', 'X'],
     OR: ['0', '1', 'X', '1', '1', '1', 'X', '1', 'X'],
     XOR: ['0', '1', 'X', '1', '0', 'X', 'X', 'X', 'X'],
+    NAND: ['1', '1', '1', '1', '0', 'X', '1', 'X', 'X'],
+    NOR: ['1', '0', 'X', '0', '0', '0', 'X', '0', 'X'],
+    XNOR: ['1', '0', 'X', '0', '1', 'X', 'X', 'X', 'X'],
 };
 
 const BOOLEAN_CORE_CASES = [
@@ -36,6 +39,18 @@ const BOOLEAN_CORE_CASES = [
             ['1', '1'],
         ].map(inputs => [kind, inputs, `A ${kind} B`, { A: Number(inputs[0]), B: Number(inputs[1]) }]),
     ),
+    ['NAND', ['0', '0'], 'NOT (A AND B)', { A: 0, B: 0 }],
+    ['NAND', ['0', '1'], 'NOT (A AND B)', { A: 0, B: 1 }],
+    ['NAND', ['1', '0'], 'NOT (A AND B)', { A: 1, B: 0 }],
+    ['NAND', ['1', '1'], 'NOT (A AND B)', { A: 1, B: 1 }],
+    ['NOR', ['0', '0'], 'NOT (A OR B)', { A: 0, B: 0 }],
+    ['NOR', ['0', '1'], 'NOT (A OR B)', { A: 0, B: 1 }],
+    ['NOR', ['1', '0'], 'NOT (A OR B)', { A: 1, B: 0 }],
+    ['NOR', ['1', '1'], 'NOT (A OR B)', { A: 1, B: 1 }],
+    ['XNOR', ['0', '0'], 'NOT (A XOR B)', { A: 0, B: 0 }],
+    ['XNOR', ['0', '1'], 'NOT (A XOR B)', { A: 0, B: 1 }],
+    ['XNOR', ['1', '0'], 'NOT (A XOR B)', { A: 1, B: 0 }],
+    ['XNOR', ['1', '1'], 'NOT (A XOR B)', { A: 1, B: 1 }],
 ];
 
 function createXorCircuit() {
@@ -92,11 +107,14 @@ describe('Circuit value propagation engine', () => {
         expect(evaluateGate('NOT', [input])).toBe(expected);
     });
 
-    it.each(['AND', 'OR'])('evaluates all nine dominant-value combinations for %s', kind => {
-        const actual = BINARY_INPUTS.map(inputs => evaluateGate(kind, inputs));
+    it.each(['AND', 'OR', 'NAND', 'NOR', 'XNOR'])(
+        'evaluates all nine dominant-value combinations for %s',
+        kind => {
+            const actual = BINARY_INPUTS.map(inputs => evaluateGate(kind, inputs));
 
-        expect(actual).toEqual(EXPECTED_BINARY_RESULTS[kind]);
-    });
+            expect(actual).toEqual(EXPECTED_BINARY_RESULTS[kind]);
+        },
+    );
 
     it('evaluates all nine XOR combinations without a dominant value', () => {
         const actual = BINARY_INPUTS.map(inputs => evaluateGate('XOR', inputs));
@@ -110,11 +128,9 @@ describe('Circuit value propagation engine', () => {
         expect(evaluateGate(kind, inputs)).toBe(expected);
     });
 
-    it.each([
-        ['INPUT', []],
-        ['OUTPUT', ['0']],
-    ])('rejects the non-computational gate kind %s', (kind, inputs) => {
-        expect(() => evaluateGate(kind, inputs)).toThrow(TypeError);
+    it('rejects the non-computational gate kinds INPUT and OUTPUT', () => {
+        expect(() => evaluateGate('INPUT', [])).toThrow(TypeError);
+        expect(() => evaluateGate('OUTPUT', ['0'])).toThrow(TypeError);
     });
 
     it.each([

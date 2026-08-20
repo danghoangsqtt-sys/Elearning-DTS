@@ -61,7 +61,7 @@ describe('Circuit netlist', () => {
         expect(roundTripped).toEqual(model);
     });
 
-    it('exposes only the six P0 gate kinds with their locked pin names', () => {
+    it('exposes the six P0 gate kinds plus the post-release NAND/NOR/XNOR with their locked pin names', () => {
         expect(GATE_PINS).toEqual({
             INPUT: { inputs: [], outputs: ['out'] },
             OUTPUT: { inputs: ['a'], outputs: [] },
@@ -69,6 +69,9 @@ describe('Circuit netlist', () => {
             AND: { inputs: ['a', 'b'], outputs: ['out'] },
             OR: { inputs: ['a', 'b'], outputs: ['out'] },
             XOR: { inputs: ['a', 'b'], outputs: ['out'] },
+            NAND: { inputs: ['a', 'b'], outputs: ['out'] },
+            NOR: { inputs: ['a', 'b'], outputs: ['out'] },
+            XNOR: { inputs: ['a', 'b'], outputs: ['out'] },
         });
         expect(Object.isFrozen(GATE_PINS)).toBe(true);
     });

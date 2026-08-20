@@ -3,11 +3,11 @@
 const { GATE_PINS, topologicalSort } = require('./circuit-netlist.js');
 
 const SIGNAL_VALUES = Object.freeze(['0', '1', 'X']);
-const COMPUTATIONAL_GATES = Object.freeze(['NOT', 'AND', 'OR', 'XOR']);
+const COMPUTATIONAL_GATES = Object.freeze(['NOT', 'AND', 'OR', 'XOR', 'NAND', 'NOR', 'XNOR']);
 
 function evaluateGate(kind, inputValues) {
     if (!COMPUTATIONAL_GATES.includes(kind)) {
-        throw new TypeError('Chỉ có thể tính giá trị cho cổng NOT, AND, OR hoặc XOR.');
+        throw new TypeError('Chỉ có thể tính giá trị cho cổng NOT, AND, OR, XOR, NAND, NOR hoặc XNOR.');
     }
     if (
         !Array.isArray(inputValues) ||
@@ -18,16 +18,19 @@ function evaluateGate(kind, inputValues) {
     }
 
     if (kind === 'NOT') return inputValues[0] === 'X' ? 'X' : inputValues[0] === '0' ? '1' : '0';
-    if (kind === 'AND') {
-        if (inputValues.includes('0')) return '0';
-        return inputValues.includes('X') ? 'X' : '1';
+    if (kind === 'AND' || kind === 'NAND') {
+        const result = inputValues.includes('0') ? '0' : inputValues.includes('X') ? 'X' : '1';
+        return kind === 'NAND' ? (result === 'X' ? 'X' : result === '0' ? '1' : '0') : result;
     }
-    if (kind === 'OR') {
-        if (inputValues.includes('1')) return '1';
-        return inputValues.includes('X') ? 'X' : '0';
+    if (kind === 'OR' || kind === 'NOR') {
+        const result = inputValues.includes('1') ? '1' : inputValues.includes('X') ? 'X' : '0';
+        return kind === 'NOR' ? (result === 'X' ? 'X' : result === '0' ? '1' : '0') : result;
     }
-    if (inputValues.includes('X')) return 'X';
-    return inputValues[0] === inputValues[1] ? '0' : '1';
+    if (kind === 'XOR' || kind === 'XNOR') {
+        const result = inputValues.includes('X') ? 'X' : inputValues[0] === inputValues[1] ? '0' : '1';
+        return kind === 'XNOR' ? (result === 'X' ? 'X' : result === '0' ? '1' : '0') : result;
+    }
+    return inputValues.includes('X') ? 'X' : inputValues[0] === inputValues[1] ? '0' : '1';
 }
 
 function resolveInputValue(inputAssignment, nodeId) {
