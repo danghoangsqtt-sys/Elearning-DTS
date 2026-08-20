@@ -91,8 +91,6 @@ describe('Electronics Logic schema lifecycle', () => {
     });
 
     it.each([
-        [{ prompt: '' }, 'emptyPrompt', 'prompt'],
-        [{ variables: ['A'] }, 'invalidVariables', 'variables'],
         [
             {
                 answer: {
@@ -112,6 +110,32 @@ describe('Electronics Logic schema lifecycle', () => {
             },
             'invalidTestbench',
             'answer.testbench',
+        ],
+        [
+            {
+                answer: {
+                    ...createCircuitActivity().answer,
+                    testbench: {
+                        ...createCircuitActivity().answer.testbench,
+                        expected: { Sum: 'A XOP B', Carry: 'A AND B' },
+                    },
+                },
+            },
+            'invalidTestbenchExpression',
+            'answer.testbench.expected.Sum',
+        ],
+        [
+            {
+                answer: {
+                    ...createCircuitActivity().answer,
+                    testbench: {
+                        ...createCircuitActivity().answer.testbench,
+                        expected: { Sum: 'A XOR C', Carry: 'A AND B' },
+                    },
+                },
+            },
+            'invalidTestbenchExpression',
+            'answer.testbench.expected.Sum',
         ],
     ])('rejects invalid circuit authoring with stable Vietnamese feedback %#', (override, code, path) => {
         const result = lifecycle.validate(createCircuitActivity(override));

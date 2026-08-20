@@ -9,6 +9,29 @@ function passedRatio(checks) {
     return checks.filter(check => check.passed).length / checks.length;
 }
 
+function findRedundantGroupIds(groups, groupResults) {
+    const validIndexes = groups.map((_, index) => (groupResults[index].valid ? index : -1)).filter(index => index >= 0);
+    if (validIndexes.length === 0) return [];
+    const totalCovered = new Set(validIndexes.flatMap(index => groups[index].cells));
+    const remaining = new Set(validIndexes);
+    const redundant = new Set();
+    [...validIndexes]
+        .reverse()
+        .forEach(index => {
+            const coverageWithout = new Set();
+            remaining.forEach(otherIndex => {
+                if (otherIndex === index) return;
+                groups[otherIndex].cells.forEach(cell => coverageWithout.add(cell));
+            });
+            const stillCoversAll = [...totalCovered].every(cell => coverageWithout.has(cell));
+            if (stillCoversAll) {
+                redundant.add(index);
+                remaining.delete(index);
+            }
+        });
+    return [...redundant].map(index => groups[index].id);
+}
+
 function gradeKmapResponse({ expected, response, variableCount, maxScore }) {
     const model = core.vectorToKmapModel(expected);
     const cellChecks = model.cells.flatMap((row, rowIndex) =>
@@ -28,12 +51,16 @@ function gradeKmapResponse({ expected, response, variableCount, maxScore }) {
     const groupResults = response.groups.map(group =>
         validateKmapGroup({ variableCount, cells: group.cells, values: stringValues }),
     );
-    const groupValidityChecks = response.groups.map((group, index) => ({
-        id: `kmap-group-${group.id}`,
-        passed: groupResults[index].valid,
-        expected: 'valid-group',
-        actual: groupResults[index].valid ? 'valid-group' : groupResults[index].reason,
-    }));
+    const redundantGroupIds = new Set(findRedundantGroupIds(response.groups, groupResults));
+    const groupValidityChecks = response.groups.map((group, index) => {
+        const redundant = redundantGroupIds.has(group.id);
+        return {
+            id: `kmap-group-${group.id}`,
+            passed: groupResults[index].valid && !redundant,
+            expected: 'valid-group',
+            actual: redundant ? 'redundant' : groupResults[index].valid ? 'valid-group' : groupResults[index].reason,
+        };
+    });
     const coverageChecks = core.vectorToMinterms(expected).minterms.map(index => {
         const covered = response.groups.some(
             (group, groupIndex) => groupResults[groupIndex].valid && group.cells.includes(index),
@@ -55,7 +82,7 @@ function gradeKmapResponse({ expected, response, variableCount, maxScore }) {
         });
     }
 
-    const equivalent = groupDimensionChecks.every(check => check.passed);
+    const equivalent = coverageChecks.every(check => check.passed);
     const equivalenceCheck = {
         id: 'kmap-sop-equivalence',
         passed: equivalent,
@@ -91,5 +118,6 @@ function gradeKmapResponse({ expected, response, variableCount, maxScore }) {
 
 module.exports = {
     WEIGHTS,
+    findRedundantGroupIds,
     gradeKmapResponse,
 };

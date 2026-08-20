@@ -129,4 +129,49 @@ describe('Karnaugh-map deterministic grader', () => {
             solution: '!A',
         });
     });
+
+    it('flags a valid-shaped group that adds no coverage as redundant instead of rewarding it', () => {
+        const result = grade(createExpected(), [
+            { id: 'g1', cells: [0, 2, 8, 10] },
+            { id: 'g2', cells: [8, 10, 12, 14] },
+            { id: 'g-redundant', cells: [8, 10] },
+        ]);
+
+        expect(result.checks.find(check => check.id === 'kmap-group-g1')).toMatchObject({
+            passed: true,
+            actual: 'valid-group',
+        });
+        expect(result.checks.find(check => check.id === 'kmap-group-g2')).toMatchObject({
+            passed: true,
+            actual: 'valid-group',
+        });
+        expect(result.checks.find(check => check.id === 'kmap-group-g-redundant')).toMatchObject({
+            passed: false,
+            expected: 'valid-group',
+            actual: 'redundant',
+        });
+        expect(result.checks.every(check => check.id.startsWith('kmap-coverage-') ? check.passed : true)).toBe(true);
+        expect(result.score).toBe(8.0556);
+    });
+
+    it('flags a duplicate whole-group as redundant without failing the required coverage', () => {
+        const result = grade(createExpected(), [
+            { id: 'g1', cells: [0, 2, 8, 10] },
+            { id: 'g2', cells: [8, 10, 12, 14] },
+            { id: 'g-duplicate', cells: [0, 2, 8, 10] },
+        ]);
+
+        expect(result.checks.find(check => check.id === 'kmap-group-g-duplicate')).toMatchObject({
+            passed: false,
+            actual: 'redundant',
+        });
+        expect(result.checks.find(check => check.id === 'kmap-group-g1')).toMatchObject({
+            passed: true,
+            actual: 'valid-group',
+        });
+        expect(result.checks.find(check => check.id === 'kmap-group-g2')).toMatchObject({
+            passed: true,
+            actual: 'valid-group',
+        });
+    });
 });

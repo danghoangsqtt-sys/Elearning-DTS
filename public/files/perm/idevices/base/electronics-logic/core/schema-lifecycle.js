@@ -1,5 +1,6 @@
 'use strict';
 
+const { parse: parseBooleanExpression, getVariables } = require('./boolean-core.js');
 const { isValidTestbench: isValidCircuitTestbench } = require('./circuit-grader.js');
 
 const SCHEMA_VERSION = 1;
@@ -30,6 +31,7 @@ const ERROR_MESSAGES = Object.freeze({
     invalidMinterms: 'Minterm phải là danh sách số nguyên.',
     invalidDontCares: "Don't-care phải là danh sách số nguyên.",
     invalidTestbench: 'Testbench mạch điện không hợp lệ.',
+    invalidTestbenchExpression: 'Biểu thức đáp án đầu ra mạch điện không hợp lệ.',
     duplicateMinterm: 'Danh sách minterm không được lặp giá trị.',
     duplicateDontCare: "Danh sách don't-care không được lặp giá trị.",
     mintermOutOfRange: 'Minterm phải nằm trong miền của số biến đã chọn.',
@@ -184,7 +186,21 @@ function validateCircuitTestbench(activity, addError) {
         testbench.variables.every((variable, index) => variable === activity.variables[index]);
     if (!variablesMatch || !isValidCircuitTestbench(testbench)) {
         addError('invalidTestbench', 'answer.testbench');
+        return;
     }
+    Object.entries(testbench.expected).forEach(([outputName, expression]) => {
+        try {
+            parseBooleanExpression(expression);
+            const usedVariables = getVariables(expression);
+            const unknownVariable = usedVariables.find(variable => !testbench.variables.includes(variable));
+            if (unknownVariable !== undefined) {
+                addError('invalidTestbenchExpression', `answer.testbench.expected.${outputName}`);
+            }
+        } catch (error) {
+            if (error instanceof TypeError) throw error;
+            addError('invalidTestbenchExpression', `answer.testbench.expected.${outputName}`);
+        }
+    });
 }
 
 function validate(activity) {
