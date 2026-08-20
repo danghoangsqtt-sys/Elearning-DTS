@@ -95,6 +95,8 @@ const contract = {
         'vectorToKmapModel',
         'kmapModelToVector',
         'minimizeSop',
+        'vectorToCanonicalPos',
+        'minimizePos',
     ],
     tokenTypes: {
         LITERAL: 'LITERAL',

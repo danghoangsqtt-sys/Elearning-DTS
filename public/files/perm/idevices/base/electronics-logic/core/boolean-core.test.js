@@ -634,6 +634,82 @@ describe('Electronics Logic exact SOP minimizer', () => {
         });
     });
 
+    it('converts a vector to the canonical product-of-sums from its maxterms', () => {
+        expect(core.vectorToCanonicalPos({ variables: ['A', 'B'], values: [0, 1, 1, 0] })).toBe(
+            '(A+B)*(!A+!B)',
+        );
+        expect(core.vectorToCanonicalPos({ variables: ['A', 'B', 'C'], values: [0, 0, 1, 0, 1, 1, 1, 1] })).toBe(
+            '(A+B+C)*(A+B+!C)*(A+!B+!C)',
+        );
+        expect(core.vectorToCanonicalPos({ variables: ['A', 'B'], values: [1, 1, 1, 1] })).toBe('1');
+        expect(core.vectorToCanonicalPos({ variables: [], values: [0] })).toBe('0');
+        expect(core.vectorToCanonicalPos({ variables: [], values: [1] })).toBe('1');
+    });
+
+    it.each([
+        [
+            { variables: ['A', 'B'], values: [0, 1, 1, 0] },
+            { expression: '(!A+!B)*(A+B)', patterns: ['11', '00'], terms: ['!A+!B', 'A+B'], cost: { implicants: 2, literals: 4 } },
+        ],
+        [
+            { variables: ['A', 'B'], values: [0, 0, 1, 1] },
+            { expression: '(A)', patterns: ['0-'], terms: ['A'], cost: { implicants: 1, literals: 1 } },
+        ],
+        [
+            { variables: ['A', 'B', 'C'], values: [0, 1, 1, 1, 1, 1, 1, 1] },
+            { expression: '(A+B+C)', patterns: ['000'], terms: ['A+B+C'], cost: { implicants: 1, literals: 3 } },
+        ],
+    ])('returns the exact stable minimum POS for golden case %#', (vector, expected) => {
+        const result = core.minimizePos(vector);
+
+        expect(result).toMatchObject({
+            variables: vector.variables,
+            expression: expected.expression,
+            cost: expected.cost,
+        });
+        expect(result.implicants.map(implicant => implicant.pattern)).toEqual(expected.patterns);
+        expect(result.implicants.map(implicant => implicant.term)).toEqual(expected.terms);
+    });
+
+    it('reports only required maxterms in POS implicant evidence when using don\'t-cares', () => {
+        expect(core.minimizePos({ variables: ['A', 'B'], values: [0, 'X', 1, 1] }).implicants).toEqual([
+            { pattern: '0-', term: 'A', maxterms: [0] },
+        ]);
+    });
+
+    it('keeps zero-variable POS constants stable', () => {
+        expect(core.minimizePos({ variables: [], values: [0] })).toEqual({
+            variables: [],
+            expression: '0',
+            implicants: [],
+            cost: { implicants: 0, literals: 0 },
+        });
+        expect(core.minimizePos({ variables: [], values: [1] })).toEqual({
+            variables: [],
+            expression: '1',
+            implicants: [],
+            cost: { implicants: 0, literals: 0 },
+        });
+    });
+
+    it('is deterministic and equivalent for one hundred generated truth vectors', () => {
+        let state = 0x13579bdf;
+        for (let caseIndex = 0; caseIndex < 100; caseIndex += 1) {
+            state = (Math.imul(1664525, state) + 1013904223) >>> 0;
+            const vector = {
+                variables: ['A', 'B', 'C', 'D'],
+                values: Array.from({ length: 16 }, (_, bit) => (state >>> bit) & 1),
+            };
+            const canonical = core.vectorToCanonicalPos(vector);
+            const first = core.minimizePos(vector);
+            const second = core.minimizePos(vector);
+
+            expect(first).toEqual(second);
+            expect(core.areEquivalent(canonical, first.expression, vector.variables)).toBe(true);
+            expect(first.cost.implicants).toBeLessThanOrEqual(vector.values.filter(value => value === 0).length);
+        }
+    });
+
     it('is deterministic and equivalent for one hundred generated truth vectors', () => {
         let state = 0x13579bdf;
         for (let caseIndex = 0; caseIndex < 100; caseIndex += 1) {

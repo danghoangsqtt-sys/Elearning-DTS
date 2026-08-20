@@ -24,6 +24,8 @@ describe('Electronics Logic Boolean Core contract', () => {
             'vectorToKmapModel',
             'kmapModelToVector',
             'minimizeSop',
+            'vectorToCanonicalPos',
+            'minimizePos',
         ]);
     });
 

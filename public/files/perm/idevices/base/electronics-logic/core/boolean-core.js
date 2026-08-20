@@ -670,23 +670,31 @@ function patternToTerm(pattern, variables) {
     return literals.length === 0 ? '1' : literals.join('*');
 }
 
-function selectedImplicants(primes, minterms) {
-    const candidatesByMinterm = new Map(
-        minterms.map(minterm => [
-            minterm,
-            primes.map((prime, index) => ({ prime, index })).filter(({ prime }) => prime.minterms.includes(minterm)),
+function patternToSumTerm(pattern, variables) {
+    const literals = [...pattern].flatMap((bit, index) => {
+        if (bit === '-') return [];
+        return [bit === '0' ? variables[index] : `!${variables[index]}`];
+    });
+    return literals.length === 0 ? '0' : literals.join('+');
+}
+
+function selectImplicants(primes, targets) {
+    const candidatesByTarget = new Map(
+        targets.map(target => [
+            target,
+            primes.map((prime, index) => ({ prime, index })).filter(({ prime }) => prime.targets.includes(target)),
         ]),
     );
     const essential = new Set();
-    for (const candidates of candidatesByMinterm.values()) {
+    for (const candidates of candidatesByTarget.values()) {
         if (candidates.length === 1) essential.add(candidates[0].index);
     }
 
-    const isCovered = (minterm, selected) => [...selected].some(index => primes[index].minterms.includes(minterm));
+    const isCovered = (target, selected) => [...selected].some(index => primes[index].targets.includes(target));
     let best = null;
 
     function consider(selected) {
-        const uncovered = minterms.filter(minterm => !isCovered(minterm, selected));
+        const uncovered = targets.filter(target => !isCovered(target, selected));
         if (uncovered.length === 0) {
             const indices = [...selected].sort((left, right) => left - right);
             const implicants = indices
@@ -711,10 +719,10 @@ function selectedImplicants(primes, minterms) {
         }
         if (best !== null && selected.size >= best.score.implicants) return;
 
-        const nextMinterm = uncovered
-            .map(minterm => ({ minterm, candidates: candidatesByMinterm.get(minterm) }))
-            .sort((left, right) => left.candidates.length - right.candidates.length || left.minterm - right.minterm)[0];
-        for (const candidate of nextMinterm.candidates) {
+        const nextTarget = uncovered
+            .map(target => ({ target, candidates: candidatesByTarget.get(target) }))
+            .sort((left, right) => left.candidates.length - right.candidates.length || left.target - right.target)[0];
+        for (const candidate of nextTarget.candidates) {
             const nextSelected = new Set(selected);
             nextSelected.add(candidate.index);
             consider(nextSelected);
@@ -723,6 +731,19 @@ function selectedImplicants(primes, minterms) {
 
     consider(essential);
     return best.implicants;
+}
+
+function buildPrimes(normalized, targets, dontCares, toTerm) {
+    const width = normalized.variables.length;
+    const primePatterns = findPrimePatterns([...targets, ...dontCares], width);
+    return primePatterns
+        .map(pattern => ({
+            pattern,
+            term: toTerm(pattern, normalized.variables),
+            literals: [...pattern].filter(bit => bit !== '-').length,
+            targets: targets.filter(target => patternCovers(pattern, target, width)),
+        }))
+        .filter(implicant => implicant.targets.length > 0);
 }
 
 function minimizeSop(vector) {
@@ -737,29 +758,71 @@ function minimizeSop(vector) {
         };
     }
 
-    const width = normalized.variables.length;
-    const primePatterns = findPrimePatterns([...minterms, ...dontCares], width);
-    const primes = primePatterns
-        .map(pattern => ({
-            pattern,
-            term: patternToTerm(pattern, normalized.variables),
-            literals: [...pattern].filter(bit => bit !== '-').length,
-            minterms: minterms.filter(minterm => patternCovers(pattern, minterm, width)),
-        }))
-        .filter(implicant => implicant.minterms.length > 0);
-    const selection = selectedImplicants(primes, minterms);
-    const implicants = selection.map(({ pattern, term, minterms: coveredMinterms }) => ({
-        pattern,
-        term,
-        minterms: [...coveredMinterms],
-    }));
+    const primes = buildPrimes(normalized, minterms, dontCares, patternToTerm);
+    const selected = selectImplicants(primes, minterms);
     return {
         variables: normalized.variables,
-        expression: implicants.map(implicant => implicant.term).join('+'),
-        implicants,
+        expression: selected.map(implicant => implicant.term).join('+'),
+        implicants: selected.map(({ pattern, term, targets }) => ({ pattern, term, minterms: [...targets] })),
         cost: {
-            implicants: implicants.length,
-            literals: selection.reduce((total, implicant) => total + implicant.literals, 0),
+            implicants: selected.length,
+            literals: selected.reduce((total, implicant) => total + implicant.literals, 0),
+        },
+    };
+}
+
+function maxtermIndexes(normalized) {
+    const maxterms = [];
+    const dontCares = [];
+    normalized.values.forEach((value, index) => {
+        if (value === 0) maxterms.push(index);
+        if (value === 'X') dontCares.push(index);
+    });
+    return { maxterms, dontCares };
+}
+
+function vectorToCanonicalPos(vector) {
+    const normalized = normalizeTruthVector(vector);
+    if (normalized.variables.length === 0) return normalized.values[0] === 0 ? '0' : '1';
+    const { maxterms } = maxtermIndexes(normalized);
+    if (maxterms.length === 0) return '1';
+    return maxterms
+        .map(maxterm => `(${mintermToProduct(normalized.variables, maxterm).split('*').map(literal => {
+            const inverted = literal.startsWith('!') ? literal.slice(1) : `!${literal}`;
+            return inverted;
+        }).join('+')})`)
+        .join('*');
+}
+
+function minimizePos(vector) {
+    const normalized = normalizeTruthVector(vector);
+    const { maxterms, dontCares } = maxtermIndexes(normalized);
+    if (maxterms.length === 0) {
+        return {
+            variables: normalized.variables,
+            expression: '1',
+            implicants: [],
+            cost: { implicants: 0, literals: 0 },
+        };
+    }
+    if (maxterms.length === 2 ** normalized.variables.length) {
+        return {
+            variables: normalized.variables,
+            expression: '0',
+            implicants: [],
+            cost: { implicants: 0, literals: 0 },
+        };
+    }
+
+    const primes = buildPrimes(normalized, maxterms, dontCares, patternToSumTerm);
+    const selected = selectImplicants(primes, maxterms);
+    return {
+        variables: normalized.variables,
+        expression: selected.map(implicant => `(${implicant.term})`).join('*'),
+        implicants: selected.map(({ pattern, term, targets }) => ({ pattern, term, maxterms: [...targets] })),
+        cost: {
+            implicants: selected.length,
+            literals: selected.reduce((total, implicant) => total + implicant.literals, 0),
         },
     };
 }
@@ -771,10 +834,12 @@ module.exports = {
     evaluate,
     getVariables,
     kmapModelToVector,
+    minimizePos,
     minimizeSop,
     mintermsToVector,
     parse,
     tokenize,
+    vectorToCanonicalPos,
     vectorToCanonicalSop,
     vectorToKmapModel,
     vectorToMinterms,
