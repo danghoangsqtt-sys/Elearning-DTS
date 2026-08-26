@@ -89,7 +89,7 @@
     "mathjax-full": "^3.2.2",
     "mermaid": "^11.16.1",
     "mime-types": "^3.0.2",
-    "mysql2": "^3.23.3",
+    "mysql2": "^3.23.4",
     "nunjucks": "^3.2.4",
     "pdfjs-dist": "6.2.108",
     "uuid": "^14.0.1",
